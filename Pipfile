@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+black = "*"
+isort = "*"
+mypy = "*"
+flake8 = "*"
+pytest-cov = "*"
+pre-commit = "*"
+
+[packages]
+colorlog = "*"
+torch = "*"
+tqdm = "*"
+torchvision = "*"
+pyyaml = "*"
+tensorboard = "*"

@@ -1,0 +1,36 @@
+#---------------------------------------------------------------------------------
+# - experiments             : List of training experiments.
+# - tracking_dir            : The directory where the results of the experiments
+#                             will be stored.
+# - models                  : Best models and checkpoints directories.
+# - models_dir              : The directory path to save the best models.
+# - checkpoints_dir         : The directory path to save general checkpoints.
+# - data                    : Train and test data paths.
+# - train_dir               : The directory path to the train data.
+# - test_dir                : The directory path to the test data.
+# - hyperparameters         : Hyperparameters for training.
+# - num_epochs              : An integer indicating how many epochs to train for.
+#                             the data. Available db types: oracle, microsoft_sql
+# - batch_size              : How many samples per batch to load.
+# - learning_rate           : The learning rate of the optimizer.
+# - optimizer_name          : The name of the optimizer to use for training.
+#                             Available optimizers: `sgd`, `adam`.
+# - model_name              : The name of the model to train. Available models:
+#                             `tiny_vgg`, `efficient_net_b0`, `efficient_net_b2`
+#---------------------------------------------------------------------------------
+experiments:
+  -
+    name: pizza_steak_sushi_20_percent
+    tracking_dir: ./experiments/
+    models:
+      models_dir: ./models
+      checkpoints_dir: ./checkpoints
+    data:
+        train_dir: ./data/pizza_steak_sushi_20_percent/train
+        test_dir: ./data/pizza_steak_sushi_20_percent/test
+    hyperparameters:
+      num_epochs: 25
+      batch_size: 32
+      learning_rate: 0.001
+      optimizer_name: adam
+      model_name: tiny_vgg
