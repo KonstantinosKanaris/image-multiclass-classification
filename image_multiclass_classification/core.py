@@ -1,13 +1,11 @@
 import os
 from typing import Any, Dict
 
-import torch
-import torch.utils.tensorboard
 from torch import nn
 
 from image_multiclass_classification import logger
 from image_multiclass_classification.data_setup import create_dataloaders
-from image_multiclass_classification.engine import trainer
+from image_multiclass_classification.engine.trainer import TrainingExperiment
 from image_multiclass_classification.factories.client import Client
 from image_multiclass_classification.utils.aux import Timer, create_writer
 
@@ -35,9 +33,6 @@ class ExperimentManager:
         resume_from_checkpoint (bool):
             If 'True' the selected model will resume training
             from the last selected checkpoint. Defaults to `False.
-        device (str):
-            The device (`cuda` or `cpu`) used for training,
-            determined based on availability.
 
     Example:
 
@@ -46,10 +41,10 @@ class ExperimentManager:
         method to execute the experiments.
 
         >>> experiment_config = {
+        ...     'tracking_dir': './runs',
         ...     'experiments': [
         ...         {
         ...             'name': 'experiment1',
-        ...             'tracking_dir': './runs',
         ...             'data': {
         ...                 'paths': {
         ...                     'train_dir': './data/train',
@@ -75,7 +70,6 @@ class ExperimentManager:
     ) -> None:
         self.config: Dict[str, Any] = config
         self.resume_from_checkpoint: bool = resume_from_checkpoint
-        self.device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
         self.client: Client = Client()
 
@@ -110,13 +104,13 @@ class ExperimentManager:
             experiment (Dict[str, Any]): A dictionary containing experiment
             parameters including:
                 - 'name' (str): Name of the experiment.
-                - 'tracking_dir' (str): Directory for experiment tracking.
                 - 'data' (Dict[str, Any]): Dictionary containing data paths.
                     - 'train_dir' (str): Directory path for training data.
                     - 'test_dir' (str): Directory path for testing data.
-                - 'hyperparameters' (Dict[str, Any]): Dictionary containing
-                  hyperparameters for the experiment.
+                - 'hyperparameters' (Dict[str, Any]): Contains hyperparameters
+                    for the experiment.
                     - 'model_name' (str): Name of the model architecture.
+                    - 'optimizer_name' (str): Name of the optimizer.
                     - 'batch_size' (int): Batch size for training.
                     - 'learning_rate' (float): Learning rate for optimization.
                     - 'num_epochs' (int): Number of epochs for training.
@@ -127,13 +121,13 @@ class ExperimentManager:
 
             >>> experiment_example = {
             ...     'name': '<name_of_the_experiment>',
-            ...     'tracking_dir': '<dir_to_save_experiments>',
             ...     'data': {
             ...         'train_dir': '<path_to_train_data_dir>',
             ...         'test_dir': '<path_to_test_data_dir>'
             ...     },
             ...     'hyperparameters': {
-            ...         'model_name': '<model_to_train>',
+            ...         'model_name': 'efficient_net_b0',
+            ...         'optimizer_name': 'adam',
             ...         'batch_size': 32,
             ...         'learning_rate': 0.001,
             ...         'num_epochs': 1
@@ -162,30 +156,29 @@ class ExperimentManager:
             learning_rate=experiment["hyperparameters"]["learning_rate"],
         )
         writer = create_writer(
-            start_dir=experiment["tracking_dir"],
+            start_dir=self.config["tracking_dir"],
             experiment_name=experiment["name"],
             model_name=experiment["hyperparameters"]["model_name"],
         )
 
         model_name = (
-            f"{experiment['hyperparameters']['model_name']}_"
-            f"{experiment['name']}_checkpoint.pth"
+            f"{experiment['name']}_"
+            f"{experiment['hyperparameters']['model_name']}.pth"
         )
-        checkpoint_path = os.path.join(
-            experiment["models"]["checkpoints_dir"], model_name
+        checkpoint_path = os.path.join(self.config["checkpoints_dir"], model_name)
+
+        training_experiment = TrainingExperiment(
+            model=model,
+            optimizer=optimizer,
+            loss_fn=loss_fn,
+            train_dataloader=train_dataloader,
+            test_dataloader=test_dataloader,
+            epochs=experiment["hyperparameters"]["num_epochs"],
+            checkpoint_path=checkpoint_path,
+            resume=self.resume_from_checkpoint,
+            writer=writer,
         )
         # Train the model
         with Timer() as t:
-            trainer.train(
-                model=model.to(self.device),
-                train_dataloader=train_dataloader,
-                test_dataloader=test_dataloader,
-                loss_fn=loss_fn,
-                optimizer=optimizer,
-                epochs=experiment["hyperparameters"]["num_epochs"],
-                device=self.device,
-                writer=writer,
-                checkpoint_path=checkpoint_path,
-                resume=self.resume_from_checkpoint,
-            )
+            training_experiment.train()
         logger.info(f"Training took {t.elapsed} seconds.")

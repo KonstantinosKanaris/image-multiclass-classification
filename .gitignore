@@ -1,7 +1,6 @@
 data/
 logs/
 images/
-models/
 checkpoints/
 
 .venv

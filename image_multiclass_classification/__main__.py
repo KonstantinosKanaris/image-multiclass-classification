@@ -29,11 +29,6 @@ def parse_arguments() -> argparse.Namespace:
         name="train", help="This is the subparser for training."
     )
 
-    single_image_predict = subparsers.add_parser(
-        name="single_image_predict",
-        help="This is the subparser for image class prediction.",
-    )
-
     train.add_argument(
         "--config",
         type=str,
@@ -49,14 +44,6 @@ def parse_arguments() -> argparse.Namespace:
         required=False,
         default="no",
         help="If `yes` the training will resume from the last " "saved checkpoint.",
-    )
-
-    single_image_predict.add_argument(
-        "--config",
-        type=str,
-        required=True,
-        help="The config file (yaml) required for predicting one image."
-        "Contains the image path the model name and path and the class names.",
     )
     return parser.parse_args()
 

@@ -2,26 +2,13 @@
 The project implements a global logger which is initialized in
 the main package.
 
-The logger redirects the log messages to both the console and
-in a .log file.
+The logger redirects the log messages to both the console.
 
-Example of using logger
------------------------
-Import:
-    .. highlight:: python
-    .. code-block:: python
-
-        from python_research_template import logger
-Usage:
-    .. highlight:: python
-    .. code-block:: python
-
-        logger.info("info message")
-        logger.debug("debug message")
-        logger.error("error message")
-
-For all the logging messages look at:
-    https://docs.python.org/3.8/howto/logging.html
+Example of using logger:
+    >>> from image_multiclass_classification import logger
+    >>> logger.info("info message")
+    >>> logger.debug("debug message")
+    >>> logger.error("error message")
 """
 
 import logging.config
@@ -52,9 +39,7 @@ __all__ = [
     "logger",
 ]
 
-basename = os.path.basename(os.getcwd())
 log_config_fpath = os.path.join(os.getcwd(), __title__, "logger/logging.ini")
-
 
 for name in [
     "matplotlib",

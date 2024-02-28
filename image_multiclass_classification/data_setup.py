@@ -3,7 +3,7 @@ Contains functionality for creating PyTorch DataLoader's for
 image classification data.
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import List, Tuple
 
 import torchvision.transforms
 from torch.utils.data import DataLoader
@@ -15,7 +15,7 @@ def create_dataloaders(
     test_dir: str,
     batch_size: int = 1,
     num_workers: int = 0,
-    transform: Optional[Callable[[], torchvision.transforms.Compose]] = None,
+    transform: torchvision.transforms.Compose = None,
 ) -> Tuple[DataLoader, DataLoader, List[str]]:
     """Creates training and testing DataLoaders.
 

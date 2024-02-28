@@ -1,10 +1,8 @@
 #---------------------------------------------------------------------------------
-# - experiments             : List of training experiments.
+# - checkpoints_dir         : The directory path to save checkpoints.
 # - tracking_dir            : The directory where the results of the experiments
+# - experiments             : List of training experiments.
 #                             will be stored.
-# - models                  : Best models and checkpoints directories.
-# - models_dir              : The directory path to save the best models.
-# - checkpoints_dir         : The directory path to save general checkpoints.
 # - data                    : Train and test data paths.
 # - train_dir               : The directory path to the train data.
 # - test_dir                : The directory path to the test data.
@@ -18,18 +16,16 @@
 # - model_name              : The name of the model to train. Available models:
 #                             `tiny_vgg`, `efficient_net_b0`, `efficient_net_b2`
 #---------------------------------------------------------------------------------
+checkpoints_dir: ./checkpoints
+tracking_dir: ./experiments/
 experiments:
   -
-    name: pizza_steak_sushi_20_percent
-    tracking_dir: ./experiments/
-    models:
-      models_dir: ./models
-      checkpoints_dir: ./checkpoints
+    name: experiment_1
     data:
-        train_dir: ./data/pizza_steak_sushi_20_percent/train
-        test_dir: ./data/pizza_steak_sushi_20_percent/test
+        train_dir: path_to_train_data_dir
+        test_dir: path_to_test_data_dir
     hyperparameters:
-      num_epochs: 25
+      num_epochs: 2
       batch_size: 32
       learning_rate: 0.001
       optimizer_name: adam

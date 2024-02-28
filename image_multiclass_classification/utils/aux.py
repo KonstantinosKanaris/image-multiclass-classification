@@ -66,7 +66,7 @@ def create_writer(
     if extra:
         log_dir = os.path.join(log_dir, extra)
 
-    logger.info(f"Created SummaryWriter, saving to {log_dir}.\n")
+    logger.info(f"Created SummaryWriter, saving to {log_dir}\n")
     return SummaryWriter(log_dir=log_dir)
 
 
