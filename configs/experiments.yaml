@@ -14,7 +14,8 @@
 # - optimizer_name          : The name of the optimizer to use for training.
 #                             Available optimizers: `sgd`, `adam`.
 # - model_name              : The name of the model to train. Available models:
-#                             `tiny_vgg`, `efficient_net_b0`, `efficient_net_b2`
+#                             `tiny_vgg`, `efficient_net_b0`, `efficient_net_b2`,
+#                             `vit`.
 #---------------------------------------------------------------------------------
 checkpoints_dir: ./checkpoints
 tracking_dir: ./experiments/
@@ -22,11 +23,11 @@ experiments:
   -
     name: experiment_1
     data:
-        train_dir: path_to_train_data_dir
-        test_dir: path_to_test_data_dir
+        train_dir: ./data/pizza_steak_sushi_20_percent/train
+        test_dir: ./data/pizza_steak_sushi_20_percent/test
     hyperparameters:
       num_epochs: 2
       batch_size: 32
       learning_rate: 0.001
       optimizer_name: adam
-      model_name: tiny_vgg
+      model_name: vit

@@ -51,7 +51,8 @@ image-multiclass-classification
 │   │   ├── __init__.py
 │   │   ├── efficientnet.py
 │   │   ├── model_handler.py
-│   │   └── tinyvgg.py
+│   │   ├── tinyvgg.py
+│   │   └── vit.py
 │   ├── transforms
 │   │   ├── __init__.py
 │   │   └── custom_transforms.py  | Contains model-specific transformations for data preprocessing
@@ -68,7 +69,7 @@ image-multiclass-classification
 ## Key Features 🔑
 
 * **Model Variety**: Choose from a wide range of pre-defined PyTorch models, including
-TinyVGG, EfficientNet (B0 and B2), for your classification tasks.
+TinyVGG, EfficientNet (B0 and B2), VisionTransformer, for your classification tasks.
 * **Customizable Models**: Easily integrate custom PyTorch models into your classification
 tasks, allowing for seamless experimentation with novel architectures and configurations
 * **Customizable Experiments**: Define multiple experiments easily by configuring model
@@ -110,11 +111,11 @@ cat_dog_horse_dataset
 ├── test
 │   ├── cat
 │   │   ├── image01.jpg
-│   │   └── image02.jpg
+│   │   ├── image02.jpg
 │   │   └── ...
 │   ├── dog
 │   │   ├── image45.jpg
-│   │   └── image46.jpg
+│   │   ├── image46.jpg
 │   │   └── ...
 │   └── horse
 │       ├── image92.jpg
@@ -123,15 +124,15 @@ cat_dog_horse_dataset
 └── train
     ├── cat
     │   ├── image101.jpg
-    │   └── image102.jpeg
+    │   ├── image102.jpeg
     │   └── ...
     ├── dog
     │   ├── image154.jpg
-    │   └── image155.jpg
+    │   ├── image155.jpg
     │   └── ...
     └── horse
         ├── image191.jpg
-        └── image192.jpg
+        ├── image192.jpg
         └── ...
 ```
 

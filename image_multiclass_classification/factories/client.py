@@ -11,10 +11,12 @@ from image_multiclass_classification.factories.factories import (
 )
 from image_multiclass_classification.models import efficientnet
 from image_multiclass_classification.models.tinyvgg import TinyVGG
+from image_multiclass_classification.models.vit import ViT
 from image_multiclass_classification.transforms.custom_transforms import (
     create_efficient_net_b0_transforms,
     create_efficient_net_b2_transforms,
     create_tinyvgg_transforms,
+    create_vit_transforms,
 )
 from image_multiclass_classification.utils import (
     constants,
@@ -101,6 +103,8 @@ class Client:
                     name=model_name.lower(),
                     model=efficientnet.efficient_net_b2,
                 )
+            case constants.VISION_TRANSFORMER_MODEL_NAME:
+                self.models_factory.register_model(name=model_name.lower(), model=ViT)
             case _:
                 logger.error(f"{error_messages.unsupported_model_name} `{model_name}`.")
                 raise custom_exceptions.UnsupportedModelNameError(
@@ -240,6 +244,10 @@ class Client:
                 self.transforms_factory.register_transforms(
                     name=model_name.lower(),
                     transforms=create_efficient_net_b2_transforms,
+                )
+            case constants.VISION_TRANSFORMER_MODEL_NAME:
+                self.transforms_factory.register_transforms(
+                    name=model_name.lower(), transforms=create_vit_transforms
                 )
             case _:
                 logger.error(f"{error_messages.unsupported_model_name}`{model_name}`.")
