@@ -6,11 +6,12 @@
 # - data                    : Train and test data paths.
 # - train_dir               : The directory path to the train data.
 # - test_dir                : The directory path to the test data.
-# - hyperparameters         : Hyperparameters for training.
+# - hyperparameters         : Training hyperparameters.
 # - num_epochs              : An integer indicating how many epochs to train for.
-#                             the data. Available db types: oracle, microsoft_sql
 # - batch_size              : How many samples per batch to load.
+# - optimizer               : Hyperparameters for the optimizer.
 # - learning_rate           : The learning rate of the optimizer.
+# - weight_decay            : L2 penalty for the optimizers.
 # - optimizer_name          : The name of the optimizer to use for training.
 #                             Available optimizers: `sgd`, `adam`.
 # - model_name              : The name of the model to train. Available models:
@@ -23,11 +24,32 @@ experiments:
   -
     name: experiment_1
     data:
-        train_dir: ./data/pizza_steak_sushi_20_percent/train
-        test_dir: ./data/pizza_steak_sushi_20_percent/test
+        train_dir: path_to_train_dir
+        test_dir: path_to_test_dir
     hyperparameters:
-      num_epochs: 2
-      batch_size: 32
-      learning_rate: 0.001
-      optimizer_name: adam
-      model_name: vit
+      general:
+        num_epochs: 1
+        batch_size: 1
+      optimizer:
+        optimizer_name: sgd
+        learning_rate: 0.001
+        weight_decay: 0
+        betas: (0.9, 0.999)
+      model:
+        model_name: tiny_vgg
+  -
+    name: experiment_2
+    data:
+        train_dir: path_to_train_dir
+        test_dir: path_to_test_dir
+    hyperparameters:
+      general:
+        num_epochs: 1
+        batch_size: 1
+      optimizer:
+        optimizer_name: adam
+        learning_rate: 0.001
+        weight_decay: 0.3
+        betas: (0.9, 0.999)
+      model:
+        model_name: efficient_net_b0

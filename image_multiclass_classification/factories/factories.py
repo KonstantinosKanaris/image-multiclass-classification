@@ -69,23 +69,23 @@ class OptimizersFactory:
         self,
         name: str,
         model_params: Iterator[torch.nn.parameter.Parameter],
-        learning_rate: float,
+        hyperparameters: Dict[str, Any],
     ) -> Any:
-        """
-        Instantiates and returns a PyTorch optimizer by name.
+        """Instantiates and returns a PyTorch optimizer by name.
 
         Args:
             name (str): The name of the optimizer to instantiate.
             model_params (Iterator[torch.nn.parameter.Parameter]):
-                Iterator of model parameters.
-            learning_rate (float): The learning rate for the optimizer.
+                Iterator of the model parameters.
+            hyperparameters (Dict[str, Any]):
+                Hyperparameters to be passed to the optimizer.
 
         Returns:
             torch.optim.Optimizer:
                 An instance of the specified PyTorch optimizer.
         """
         optimizer = self._optimizers[name]
-        return optimizer(model_params, learning_rate)
+        return optimizer(model_params, **hyperparameters)
 
 
 class TransformsFactory:

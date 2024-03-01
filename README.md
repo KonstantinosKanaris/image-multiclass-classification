@@ -9,14 +9,13 @@
 * [Experiment Configuration](#Experiment--Configuration)
 * [Training](#Training)
 * [Experiment Tracking](#Experiment--Tracking)
+* [TODOs](#TODOs)
 
 ## Overview 🔍
 
-A simple but efficient framework for image multi-class classification
-using PyTorch, empowering users to efficiently train and evaluate deep learning
-models on custom datasets. With support for various pre-defined PyTorch models,
-and the ability to easily integrate custom models, and experiment tracking capabilities,
-this framework streamlines the process of conducting image classification tasks.
+A simple framework for image multi-class classification projects using PyTorch. With the ability to
+easily integrate new models and to track multiple training experiments, this framework empowers users
+to efficiently train deep learning models on custom datasets.
 
 ### Project Structure 🌲
 ```
@@ -69,7 +68,7 @@ image-multiclass-classification
 ## Key Features 🔑
 
 * **Model Variety**: Choose from a wide range of pre-defined PyTorch models, including
-TinyVGG, EfficientNet (B0 and B2), VisionTransformer, for your classification tasks.
+TinyVGG, EfficientNet (B0 and B2), VisionTransformer (ViT), for your classification tasks
 * **Customizable Models**: Easily integrate custom PyTorch models into your classification
 tasks, allowing for seamless experimentation with novel architectures and configurations
 * **Customizable Experiments**: Define multiple experiments easily by configuring model
@@ -189,3 +188,6 @@ optimizer, and model name.
 >$ tensorboard --logdir <tracking_dir>
 >```
 >where the `tracking_dir` is defined in the configuration file.
+
+## TODOs 📝
+* Use MlFlow for experiment tracking

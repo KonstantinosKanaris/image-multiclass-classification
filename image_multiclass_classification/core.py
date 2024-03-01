@@ -44,7 +44,7 @@ class ExperimentManager:
         ...     'tracking_dir': './runs',
         ...     'experiments': [
         ...         {
-        ...             'name': 'experiment1',
+        ...             'name': 'experiment_1',
         ...             'data': {
         ...                 'paths': {
         ...                     'train_dir': './data/train',
@@ -52,10 +52,19 @@ class ExperimentManager:
         ...                 }
         ...             },
         ...             'hyperparameters': {
-        ...                 'model_name': 'ResNet',
-        ...                 'batch_size': 32,
-        ...                 'learning_rate': 0.001,
-        ...                 'num_epochs': 10
+        ...                 'general': {
+        ...                     'num_epochs': 10,
+        ...                     'batch_size': 32
+        ...                 },
+        ...                 'optimizer': {
+        ...                     'optimizer_name': 'adam',
+        ...                     'learning_rate': 0.001,
+        ...                     'weight_decay': 0.3,
+        ...                     'betas': (0.9, 0.999)
+        ...                 },
+        ...                 'model': {
+        ...                     'model_name': 'efficient_net_b0'
+        ...                 }
         ...             }
         ...         },
         ...         ...
@@ -101,69 +110,68 @@ class ExperimentManager:
             6. Logging: Logs the training duration.
 
         Args:
-            experiment (Dict[str, Any]): A dictionary containing experiment
-            parameters including:
-                - 'name' (str): Name of the experiment.
-                - 'data' (Dict[str, Any]): Dictionary containing data paths.
-                    - 'train_dir' (str): Directory path for training data.
-                    - 'test_dir' (str): Directory path for testing data.
-                - 'hyperparameters' (Dict[str, Any]): Contains hyperparameters
-                    for the experiment.
-                    - 'model_name' (str): Name of the model architecture.
-                    - 'optimizer_name' (str): Name of the optimizer.
-                    - 'batch_size' (int): Batch size for training.
-                    - 'learning_rate' (float): Learning rate for optimization.
-                    - 'num_epochs' (int): Number of epochs for training.
+            experiment (Dict[str, Any]): Contains training hyperparameters
+                for each experiment.
 
         Example:
             To run an experiment, provide the experiment details in
             the following format:
 
             >>> experiment_example = {
-            ...     'name': '<name_of_the_experiment>',
+            ...     'name': 'experiment_1',
             ...     'data': {
-            ...         'train_dir': '<path_to_train_data_dir>',
-            ...         'test_dir': '<path_to_test_data_dir>'
+            ...         'paths': {
+            ...             'train_dir': './data/train',
+            ...             'test_dir': './data/test'
+            ...         }
             ...     },
             ...     'hyperparameters': {
-            ...         'model_name': 'efficient_net_b0',
-            ...         'optimizer_name': 'adam',
-            ...         'batch_size': 32,
-            ...         'learning_rate': 0.001,
-            ...         'num_epochs': 1
+            ...         'general': {
+            ...             'num_epochs': 10,
+            ...             'batch_size': 32
+            ...         },
+            ...         'optimizer': {
+            ...             'optimizer_name': 'adam',
+            ...             'learning_rate': 0.001,
+            ...             'weight_decay': 0.3,
+            ...             'betas': (0.9, 0.999)
+            ...         },
+            ...         'model': {
+            ...             'model_name': 'efficient_net_b0'
+            ...         }
             ...     }
             ... }
         """
         data_transforms = self.client.transforms_client(
-            model_name=experiment["hyperparameters"]["model_name"]
+            model_name=experiment["hyperparameters"]["model"]["model_name"]
         )
 
         train_dataloader, test_dataloader, class_names = create_dataloaders(
             train_dir=experiment["data"]["train_dir"],
             test_dir=experiment["data"]["test_dir"],
-            batch_size=experiment["hyperparameters"]["batch_size"],
+            batch_size=experiment["hyperparameters"]["general"]["batch_size"],
             transform=data_transforms,
         )
 
         model = self.client.models_client(
-            model_name=experiment["hyperparameters"]["model_name"],
+            model_name=experiment["hyperparameters"]["model"]["model_name"],
             num_classes=len(class_names),
         )
         loss_fn = nn.CrossEntropyLoss()
         optimizer = self.client.optimizers_client(
-            optimizer_name=experiment["hyperparameters"]["optimizer_name"],
+            optimizer_name=experiment["hyperparameters"]["optimizer"]["optimizer_name"],
             model_params=model.parameters(),
-            learning_rate=experiment["hyperparameters"]["learning_rate"],
+            learning_rate=experiment["hyperparameters"]["optimizer"]["learning_rate"],
         )
         writer = create_writer(
             start_dir=self.config["tracking_dir"],
             experiment_name=experiment["name"],
-            model_name=experiment["hyperparameters"]["model_name"],
+            model_name=experiment["hyperparameters"]["model"]["model_name"],
         )
 
         model_name = (
             f"{experiment['name']}_"
-            f"{experiment['hyperparameters']['model_name']}.pth"
+            f"{experiment['hyperparameters']['model']['model_name']}.pth"
         )
         checkpoint_path = os.path.join(self.config["checkpoints_dir"], model_name)
 
@@ -173,11 +181,12 @@ class ExperimentManager:
             loss_fn=loss_fn,
             train_dataloader=train_dataloader,
             test_dataloader=test_dataloader,
-            epochs=experiment["hyperparameters"]["num_epochs"],
+            epochs=experiment["hyperparameters"]["general"]["num_epochs"],
             checkpoint_path=checkpoint_path,
             resume=self.resume_from_checkpoint,
             writer=writer,
         )
+
         # Train the model
         with Timer() as t:
             training_experiment.train()

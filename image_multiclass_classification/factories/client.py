@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, Tuple
 
 import torch
 import torchvision
@@ -118,9 +118,11 @@ class Client:
 
     def optimizers_client(
         self,
-        optimizer_name: str,
         model_params: Iterator[torch.nn.parameter.Parameter],
-        learning_rate: float,
+        optimizer_name: str = "sgd",
+        learning_rate: float = 0.001,
+        weight_decay: float = 0,
+        betas: Tuple[float, float] = (0.9, 0.99),
     ) -> torch.optim.Optimizer:
         """
         Returns an optimizer based on the provided optimizer name.
@@ -134,10 +136,16 @@ class Client:
             - 'adam': Adam optimizer.
 
         Args:
-            optimizer_name (str): The name of the optimizer to be instantiated.
+            optimizer_name (str, optional):
+                The name of the optimizer to be instantiated.
+                Defaults to ``sgd``.
             model_params (Iterator[torch.nn.parameter.Parameter]):
                 An iterator of model parameters.
-            learning_rate (float): The learning rate for the optimizer.
+            learning_rate (float, optional): The learning rate (default=0.001).
+            weight_decay (float, optional): L2 penalty (default=0).
+            betas (Tuple[float, float], optional):
+                Coefficients used for computing running averages of gradient and
+                its square (default: (0.9, 0.999)).
 
         Returns:
             torch.optim.Optimizer: An instance of the specified optimizer.
@@ -162,25 +170,40 @@ class Client:
             >>> # Get optimizer
             >>> from image_multiclass_classification.factories import client
             >>> client = client.Client()
+            >>> hyperparams = {
+            ...     "learning_rate": learning_rate,
+            ...     "weight_decay": weight_decay,
+            ... }
             >>> optimizer_instance = client.optimizers_client(
-            ...     name='sgd', model_params=simple_model.parameters(),
-            ...     learning_rate=0.01
+            ...     name='sgd',
+            ...     model_params=simple_model.parameters(),
+            ...     hyperparameters=hyperparams,
             ... )
             >>> print(optimizer_instance)
             SGD (
             Parameter Group 0
-                lr: 0.01
-                momentum: 0
                 dampening: 0
-                weight_decay: 0
+                differentiable: False
+                foreach: None
+                lr: 0.001
+                maximize: False
+                momentum: 0
                 nesterov: False
+                weight_decay: 0.3
             )
         """
+        hyperparameters = {
+            "lr": learning_rate,
+            "weight_decay": weight_decay,
+            "betas": betas,
+        }
         match optimizer_name.lower():
             case constants.SGD_OPTIMIZER_NAME:
                 self.optimizers_factory.register_optimizer(
-                    name=optimizer_name.lower(), optimizer=torch.optim.SGD
+                    name=optimizer_name.lower(),
+                    optimizer=torch.optim.SGD,
                 )
+                del hyperparameters["betas"]
             case constants.ADAM_OPTIMIZER_NAME:
                 self.optimizers_factory.register_optimizer(
                     name=optimizer_name.lower(), optimizer=torch.optim.Adam
@@ -194,10 +217,11 @@ class Client:
                     f"{error_messages.unsupported_optimizer_name}"
                     f"`{optimizer_name}`."
                 )
+
         optimizer = self.optimizers_factory.get_optimizer(
             name=optimizer_name.lower(),
             model_params=model_params,
-            learning_rate=learning_rate,
+            hyperparameters=hyperparameters,
         )
         return optimizer
 
