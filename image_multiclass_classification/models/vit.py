@@ -218,6 +218,9 @@ class ViT(nn.Module):
     in the paper: `AN IMAGE IS WORTH 16X16 WORDS:
     TRANSFORMERS FOR IMAGE RECOGNITION AT SCALE <https://arxiv.org/abs/2010.11929>`_.
 
+    The default argument values represent the `ViT-B/16` (~86M params) model
+    architecture where `16` is the patch size.
+
     Args:
         in_channels (int, optional):
             The number of color channels of the input image (default=3).
