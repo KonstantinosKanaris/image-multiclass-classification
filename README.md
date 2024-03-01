@@ -189,5 +189,8 @@ optimizer, and model name.
 >```
 >where the `tracking_dir` is defined in the configuration file.
 
+# <img src="images/tensorboard_image.png"/>
+
+
 ## TODOs 📝
 * Use MlFlow for experiment tracking
