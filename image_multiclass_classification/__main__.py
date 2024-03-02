@@ -58,8 +58,8 @@ if __name__ == "__main__":
 
     config = load_yaml_file(filepath=arguments.config)
 
-    brain = ExperimentManager(config=config, resume_from_checkpoint=resume)
+    core = ExperimentManager(config=config, resume_from_checkpoint=resume)
     if arguments.mode == "train":
-        brain.run_experiments()
+        core.run_experiments()
     else:
         logger.error("Not supported mode.")

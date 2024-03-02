@@ -33,12 +33,18 @@ class TrainingExperiment:
         optimizer (torch.optim.Optimizer):
             The optimizer used for updating model parameters.
         epochs (int, optional):
-            The number of training epochs. Defaults to 5.
+            The number of training epochs. (default=5).
+        patience (int, optional):
+            Number of epochs to wait before early stopping.
+            (default=5)
+        delta (float, optional):
+            Early stopping specific. Minimum change in monitored
+            quantity to qualify as an improvement. (default=0).
         writer (torch.utils.tensorboard.writer.SummaryWriter, optional):
             Optional 'SummaryWriter' instance for logging training metrics
-            to TensorBoard. Defaults to None.
+            to TensorBoard. Defaults to `None`.
         resume (bool): If True, resumes training from the specified checkpoint.
-            Defaults to False.
+            Defaults to `False`.
 
     Example:
         >>> # Generate random data for multi-class classification
@@ -113,6 +119,8 @@ class TrainingExperiment:
         ...     train_dataloader=train_dataloader_example,
         ...     test_dataloader=test_dataloader_example,
         ...     epochs=10,
+        ...     patience=3,
+        ...     delta=0.05,
         ...     checkpoint_path='checkpoint.pth',
         ...     resume_training=False
         ...     writer=summary_writer,
@@ -148,6 +156,8 @@ class TrainingExperiment:
         test_dataloader: torch.utils.data.DataLoader,
         checkpoint_path: str,
         epochs: int = 5,
+        patience: int = 5,
+        delta: float = 0,
         resume: bool = False,
         writer: Optional[torch.utils.tensorboard.writer.SummaryWriter] = None,
     ) -> None:
@@ -158,6 +168,8 @@ class TrainingExperiment:
         self.test_dataloader: torch.utils.data.DataLoader = test_dataloader
         self.checkpoint_path: str = checkpoint_path
         self.epochs: int = epochs
+        self.patience: int = patience
+        self.delta: float = delta
         self.resume: bool = resume
         self.writer: Optional[torch.utils.tensorboard.writer.SummaryWriter] = writer
 
@@ -209,7 +221,12 @@ class TrainingExperiment:
             "test_acc": [],
         }
 
-        early_stopping = EarlyStopping(path=self.checkpoint_path, verbose=True)
+        early_stopping = EarlyStopping(
+            patience=self.patience,
+            delta=self.delta,
+            path=self.checkpoint_path,
+            verbose=True,
+        )
 
         start_epoch = 0
         if self.resume:

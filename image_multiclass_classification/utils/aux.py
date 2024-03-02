@@ -136,6 +136,24 @@ class Timer:
 
 
 class EarlyStopping:
+    """Implements early stopping during training.
+
+    Args:
+        patience (int, optional):
+            Number of epochs to wait before early stopping.
+            (default=5).
+        delta (float, optional):
+            Minimum change in monitored quantity to qualify
+            as an improvement (default=0).
+        verbose (bool, optional):
+            If `True`, prints a message for each improvement.
+            Defaults to `False`.
+        path (str, optional):
+            Path to save the checkpoint. Should include either
+            `.pth` or `.pt` as the file extension. Defaults to
+            `'./checkpoint.pt'`.
+    """
+
     def __init__(
         self,
         patience: int = 5,
@@ -143,22 +161,6 @@ class EarlyStopping:
         verbose: bool = False,
         path: str = "./checkpoint.pt",
     ) -> None:
-        """
-        Initialize `EarlyStopping` object
-        Args:
-            patience (int, optional):
-                Number of epochs to wait before early stopping.
-                Defaults to 5.
-            delta (float, optional):
-                Minimum change in monitored quantity to qualify
-                as an improvement. Defaults to 0.
-            verbose (bool, optional):
-                If `True`, prints a message for each improvement.
-            path (str, optional):
-                Path to save the checkpoint. Should include either
-                `.pth` or `.pt` as the file extension. Defaults to
-                `'./checkpoint.pt'`.
-        """
         assert os.path.basename(path).endswith(
             (".pth", ".pt")
         ), "model_name should end with '.pt' or '.pth'"

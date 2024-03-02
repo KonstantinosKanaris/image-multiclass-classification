@@ -62,6 +62,10 @@ class ExperimentManager:
         ...                     'weight_decay': 0.3,
         ...                     'betas': (0.9, 0.999)
         ...                 },
+        ...                 'early_stopping': {
+        ...                     'patience': 3,
+        ...                     'delta': 0.05
+        ...                 },
         ...                 'model': {
         ...                     'model_name': 'efficient_net_b0'
         ...                 }
@@ -136,6 +140,10 @@ class ExperimentManager:
             ...             'weight_decay': 0.3,
             ...             'betas': (0.9, 0.999)
             ...         },
+            ...         'early_stopping': {
+            ...             'patience': 3,
+            ...              'delta': 0.05
+            ...         },
             ...         'model': {
             ...             'model_name': 'efficient_net_b0'
             ...         }
@@ -182,6 +190,8 @@ class ExperimentManager:
             train_dataloader=train_dataloader,
             test_dataloader=test_dataloader,
             epochs=experiment["hyperparameters"]["general"]["num_epochs"],
+            patience=experiment["hyperparameters"]["early_stopping"]["patience"],
+            delta=experiment["hyperparameters"]["early_stopping"]["delta"],
             checkpoint_path=checkpoint_path,
             resume=self.resume_from_checkpoint,
             writer=writer,
