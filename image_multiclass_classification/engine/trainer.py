@@ -5,6 +5,7 @@ Contains a class for training and testing a PyTorch model.
 from typing import Dict, List, Optional, Tuple
 
 import torch
+import torch.utils.data
 import torch.utils.tensorboard
 from tqdm.auto import tqdm
 
@@ -172,6 +173,12 @@ class TrainingExperiment:
         self.delta: float = delta
         self.resume: bool = resume
         self.writer: Optional[torch.utils.tensorboard.writer.SummaryWriter] = writer
+        self.early_stopping: EarlyStopping = EarlyStopping(
+            patience=self.patience,
+            delta=self.delta,
+            path=self.checkpoint_path,
+            verbose=True,
+        )
 
     def train(self) -> Dict[str, List[float]]:
         """Trains a PyTorch model on custom data.
@@ -220,13 +227,6 @@ class TrainingExperiment:
             "test_loss": [],
             "test_acc": [],
         }
-
-        early_stopping = EarlyStopping(
-            patience=self.patience,
-            delta=self.delta,
-            path=self.checkpoint_path,
-            verbose=True,
-        )
 
         start_epoch = 0
         if self.resume:
@@ -282,13 +282,13 @@ class TrainingExperiment:
                 )
                 self.writer.close()
 
-            early_stopping(
+            self.early_stopping(
                 epoch=epoch,
                 model=self.model,
                 optimizer=self.optimizer,
                 val_loss=test_loss,
             )
-            if early_stopping.early_stop:
+            if self.early_stopping.early_stop:
                 logger.info("Training stopped due to early stopping.")
                 break
             else:
@@ -376,15 +376,16 @@ class TrainingExperiment:
                 X, y = X.to(self.__class__.DEVICE), y.to(self.__class__.DEVICE)
 
                 # 1. Forward pass
-                test_pred_logits = self.model(X)
+                test_y_pred = self.model(X)
 
                 # 2. Calculate and accumulate loss
-                loss = self.loss_fn(test_pred_logits, y)
+                loss = self.loss_fn(test_y_pred, y)
                 test_loss += loss.item()
 
                 # Calculate and accumulate accuracy
-                test_pred_labels = test_pred_logits.argmax(dim=1)
+                test_pred_labels = test_y_pred.argmax(dim=1)
                 test_acc += (test_pred_labels == y).sum().item() / len(test_pred_labels)
+
         # Divide total test loss and accuracy by length of dataloader
         test_loss /= len(self.test_dataloader)
         test_acc /= len(self.test_dataloader)
