@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple
+from typing import Iterator
 
 import torch
 import torchvision
@@ -122,7 +122,6 @@ class Client:
         optimizer_name: str = "sgd",
         learning_rate: float = 0.001,
         weight_decay: float = 0,
-        betas: Tuple[float, float] = (0.9, 0.99),
     ) -> torch.optim.Optimizer:
         """
         Returns an optimizer based on the provided optimizer name.
@@ -143,9 +142,6 @@ class Client:
                 An iterator of model parameters.
             learning_rate (float, optional): The learning rate (default=0.001).
             weight_decay (float, optional): L2 penalty (default=0).
-            betas (Tuple[float, float], optional):
-                Coefficients used for computing running averages of gradient and
-                its square (default: (0.9, 0.999)).
 
         Returns:
             torch.optim.Optimizer: An instance of the specified optimizer.
@@ -195,7 +191,6 @@ class Client:
         hyperparameters = {
             "lr": learning_rate,
             "weight_decay": weight_decay,
-            "betas": betas,
         }
         match optimizer_name.lower():
             case constants.SGD_OPTIMIZER_NAME:
@@ -203,7 +198,6 @@ class Client:
                     name=optimizer_name.lower(),
                     optimizer=torch.optim.SGD,
                 )
-                del hyperparameters["betas"]
             case constants.ADAM_OPTIMIZER_NAME:
                 self.optimizers_factory.register_optimizer(
                     name=optimizer_name.lower(), optimizer=torch.optim.Adam
