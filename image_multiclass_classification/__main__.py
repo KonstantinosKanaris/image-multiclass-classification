@@ -4,10 +4,6 @@ from image_multiclass_classification import __title__, logger
 from image_multiclass_classification.core import ExperimentManager
 from image_multiclass_classification.utils.aux import load_yaml_file
 
-CLASS_NAMES = ["pizza", "steak", "sushi"]
-MODEL_DIR_PATH = "./models"
-MODEL_NAME = "05_going_modular_script_mode_tinyvgg_model.pth"
-
 
 def parse_arguments() -> argparse.Namespace:
     """
