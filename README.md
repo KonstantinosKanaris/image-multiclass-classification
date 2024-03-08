@@ -147,22 +147,36 @@ experiments:
         train_dir: ./data/cat_dog_horse_dataset_20_percent/train
         test_dir: ./data/cat_dog_horse_dataset_20_percent/test
     hyperparameters:
-      num_epochs: 10
-      batch_size: 32
-      learning_rate: 0.001
-      optimizer_name: adam
-      model_name: tiny_vgg
+      general:
+        num_epochs: 10
+        batch_size: 32
+      optimizer:
+        optimizer_name: adam
+        learning_rate: 0.001
+        weight_decay: 0.3
+      early_stopping:
+        patience: 3
+        delta: 0.008
+      model:
+        model_name: tiny_vgg
   -
     name: experiment_2
     data:
         train_dir: ./data/cat_dog_horse_dataset_40_percent/train
         test_dir: ./data/cat_dog_horse_dataset_40_percent/test
     hyperparameters:
-      num_epochs: 2
-      batch_size: 32
-      learning_rate: 0.002
-      optimizer_name: adam
-      model_name: efficient_net_b0
+      general:
+        num_epochs: 2
+        batch_size: 32
+      optimizer:
+        optimizer_name: adam
+        learning_rate: 0.002
+        weight_decay: 0
+      early_stopping:
+        patience: 5
+        delta: 0
+      model:
+        model_name: efficient_net_b0
   ...
 ```
 Define each experiment within the `experiments` list, providing a unique name, data directories for the
