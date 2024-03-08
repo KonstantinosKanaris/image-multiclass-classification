@@ -14,8 +14,6 @@
 # - optimizer_name          : The name of the optimizer to use for training.
 #                             Available optimizers: `sgd`, `adam`.
 # - weight_decay            : L2 penalty for the optimizers.
-# - betas                   : Coefficients used for computing running averages
-#                             of gradient and its square.
 # - early_stopping          : Hyperparameters for early stopping.
 # - patience                : Number of epochs to wait before early stopping.
 # - delta                   : Minimum change in monitored quantity to qualify
@@ -40,7 +38,6 @@ experiments:
         optimizer_name: sgd
         learning_rate: 0.001
         weight_decay: 0
-        betas: (0.9, 0.999)
       early_stopping:
         patience: 5
         delta: 0
@@ -59,7 +56,6 @@ experiments:
         optimizer_name: adam
         learning_rate: 0.001
         weight_decay: 0.3
-        betas: (0.9, 0.999)
       early_stopping:
         patience: 5
         delta: 0
