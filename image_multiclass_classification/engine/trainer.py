@@ -2,11 +2,12 @@
 Contains a class for training and testing a PyTorch model.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
+import mlflow
 import torch
 import torch.utils.data
-import torch.utils.tensorboard
+import torchmetrics
 from tqdm.auto import tqdm
 
 from image_multiclass_classification import logger
@@ -31,6 +32,8 @@ class TrainingExperiment:
             testing data.
         loss_fn (torch.nn.Module):
             The loss function used for optimization.
+        accuracy_fn (torchmetrics.Metric):
+            The accuracy function.
         optimizer (torch.optim.Optimizer):
             The optimizer used for updating model parameters.
         epochs (int, optional):
@@ -41,13 +44,13 @@ class TrainingExperiment:
         delta (float, optional):
             Early stopping specific. Minimum change in monitored
             quantity to qualify as an improvement. (default=0).
-        writer (torch.utils.tensorboard.writer.SummaryWriter, optional):
-            Optional 'SummaryWriter' instance for logging training metrics
-            to TensorBoard. Defaults to `None`.
         resume (bool): If True, resumes training from the specified checkpoint.
             Defaults to `False`.
 
     Example:
+        >>> # Set device-agnostic code
+        >>> device = "cuda" if torch.cuda.is_available() else "cpu"
+        >>>
         >>> # Generate random data for multi-class classification
         >>> from torch.utils.data import DataLoader, TensorDataset
         >>> train_data = torch.randn(1000, 10)
@@ -100,19 +103,16 @@ class TrainingExperiment:
         ...     def forward(self, x):
         ...         return self.fc(x)
         >>>
-        >>> simple_cnn = SimpleCNN()
+        >>> simple_cnn = SimpleCNN().to(device)
         >>>
         >>> # Setup loss function and optimizer
         >>> my_loss_function = nn.CrossEntropyLoss()
+        >>> my_accuracy_function = torchmetrics.Accuracy(
+        ...     task="multiclass", num_classes=3
+        ... ).to(device)
         >>> my_optimizer = torch.optim.Adam(
         ...     params=simple_cnn.parameters(), lr=0.001)
         >>>
-        >>> # Create summary writer
-        >>> from image_multiclass_classification.utils.aux import create_writer
-        >>> summary_writer = create_writer(
-        ...     experiment_name="experiment_name",
-        ...     model_name="model_name"
-        ... )
         >>> experiment = TrainingExperiment(
         ...     model=simple_cnn,
         ...     optimizer=my_optimizer,
@@ -124,7 +124,6 @@ class TrainingExperiment:
         ...     delta=0.05,
         ...     checkpoint_path='checkpoint.pth',
         ...     resume_training=False
-        ...     writer=summary_writer,
         ... )
         >>>
         >>> results = experiment.train()
@@ -152,6 +151,7 @@ class TrainingExperiment:
         self,
         model: torch.nn.Module,
         loss_fn: torch.nn.Module,
+        accuracy_fn: torchmetrics.Metric,
         optimizer: torch.optim.Optimizer,
         train_dataloader: torch.utils.data.DataLoader,
         test_dataloader: torch.utils.data.DataLoader,
@@ -160,10 +160,10 @@ class TrainingExperiment:
         patience: int = 5,
         delta: float = 0,
         resume: bool = False,
-        writer: Optional[torch.utils.tensorboard.writer.SummaryWriter] = None,
     ) -> None:
         self.model: torch.nn.Module = model
         self.loss_fn: torch.nn.Module = loss_fn
+        self.accuracy_fn: torchmetrics.Metric = accuracy_fn.to(self.__class__.DEVICE)
         self.optimizer: torch.optim.Optimizer = optimizer
         self.train_dataloader: torch.utils.data.DataLoader = train_dataloader
         self.test_dataloader: torch.utils.data.DataLoader = test_dataloader
@@ -172,7 +172,6 @@ class TrainingExperiment:
         self.patience: int = patience
         self.delta: float = delta
         self.resume: bool = resume
-        self.writer: Optional[torch.utils.tensorboard.writer.SummaryWriter] = writer
         self.early_stopping: EarlyStopping = EarlyStopping(
             patience=self.patience,
             delta=self.delta,
@@ -181,11 +180,11 @@ class TrainingExperiment:
         )
 
     def train(self) -> Dict[str, List[float]]:
-        """Trains a PyTorch model on custom data.
+        """Trains a PyTorch model for a number of epochs.
 
         Performs the training of a PyTorch model using the provided data
-        loaders, loss function, and optimizer. It also evaluates the model
-        on the test data at the end of each epoch. Checkpointing is supported,
+        loaders, loss and accuracy functions, and optimizer. It also evaluates
+        the model on the test data at the end of each epoch. Checkpointing is supported,
         optionally allowing for the resumption of training from a saved checkpoint.
 
         The training process includes early stopping to prevent over-fitting,
@@ -193,10 +192,6 @@ class TrainingExperiment:
         certain number of epochs.
 
         Calculates, prints and stores evaluation metrics throughout.
-
-        Stores metrics to specified writer `log_dir` if present. Refer
-        to `image_multiclass_classification.utils.aux.create_writer`
-        function for more.
 
         Returns:
             Dict[str, List[float]]:
@@ -265,22 +260,15 @@ class TrainingExperiment:
             results["test_loss"].append(test_loss)
             results["test_acc"].append(test_acc)
 
-            # Track experiments with SummaryWriter
-            if self.writer:
-                self.writer.add_scalars(
-                    main_tag="Loss",
-                    tag_scalar_dict={
-                        "train_loss": train_loss,
-                        "test_loss": test_loss,
-                    },
-                    global_step=epoch,
-                )
-                self.writer.add_scalars(
-                    main_tag="Accuracy",
-                    tag_scalar_dict={"train_acc": train_acc, "test_acc": test_acc},
-                    global_step=epoch,
-                )
-                self.writer.close()
+            mlflow.log_metrics(
+                metrics={
+                    "train_loss": train_loss,
+                    "val_loss": test_loss,
+                    "train_acc": train_acc,
+                    "val_acc": test_acc,
+                },
+                step=epoch,
+            )
 
             self.early_stopping(
                 epoch=epoch,
@@ -340,7 +328,7 @@ class TrainingExperiment:
 
             # Calculate and accumulate accuracy metric across all batches
             y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
-            train_acc += (y_pred_class == y).sum().item() / len(y_pred)
+            train_acc += self.accuracy_fn(y_pred_class, y).item()
 
         # Divide total train loss and accuracy by length of dataloader
         train_loss /= len(self.train_dataloader)
@@ -384,7 +372,7 @@ class TrainingExperiment:
 
                 # Calculate and accumulate accuracy
                 test_pred_labels = test_y_pred.argmax(dim=1)
-                test_acc += (test_pred_labels == y).sum().item() / len(test_pred_labels)
+                test_acc += self.accuracy_fn(test_pred_labels, y).item()
 
         # Divide total test loss and accuracy by length of dataloader
         test_loss /= len(self.test_dataloader)

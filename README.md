@@ -15,7 +15,7 @@
 
 A simple framework for image multi-class classification projects using PyTorch. With the ability to
 easily integrate new models and to track multiple training experiments, this framework empowers users
-to efficiently train deep learning models on custom datasets.
+to efficiently train deep vision models.
 
 ### Project Structure 🌲
 ```
@@ -74,8 +74,9 @@ tasks, allowing for seamless experimentation with novel architectures and config
 * **Customizable Experiments**: Define multiple experiments easily by configuring model
 architecture, optimizer, learning rate, batch size, and other hyperparameters in a YAML
 configuration file
-* **Experiment Tracking**: Utilize TensorBoard for real-time visualization of training
-metrics and performance evaluation, enabling easy monitoring of experiment progress
+* **Experiment Tracking**: Utilize MLFlow for real-time visualization of training
+metrics and performance evaluation, enabling easy monitoring and tracking of the experiment
+progress
 * **Checkpointing**: Ensure training progress is saved with checkpointing functionality,
 allowing for easy resumption of training from the last saved state
 * **EarlyStopping**: Automatically stop training when the model's performance stops
@@ -179,9 +180,6 @@ experiments:
         model_name: efficient_net_b0
   ...
 ```
-Define each experiment within the `experiments` list, providing a unique name, data directories for the
-training and test images, and hyperparameters such as the number of epochs, batch size, learning rate,
-optimizer, and model name.
 
 ## Training 🚀
 *Command Line*
@@ -197,14 +195,8 @@ optimizer, and model name.
 >where the checkpoint directory path is defined in the configuration file.
 
 ## Experiment Tracking 📉
->Track your experiments with tensorboard by executing:
+>Track your experiments with MLFlow by executing:
 >```bash
->$ tensorboard --logdir <tracking_dir>
+>$ mlflow ui
 >```
->where the `tracking_dir` is defined in the configuration file.
-
-# <img src="images/tensorboard_image.png"/>
-
-
-## TODOs 📝
-* Use MlFlow for experiment tracking
+>

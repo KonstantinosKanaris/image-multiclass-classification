@@ -7,67 +7,65 @@ from __future__ import annotations
 import errno
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Optional
 
 import numpy as np
 import torch
 import yaml
-from torch.utils.tensorboard.writer import SummaryWriter
 
 from image_multiclass_classification import logger
 
-
-def create_writer(
-    experiment_name: str,
-    model_name: str,
-    start_dir: str = "runs",
-    extra: Optional[str] = None,
-) -> torch.utils.tensorboard.writer.SummaryWriter:
-    """
-    Creates a `torch.utils.tensorboard.writer.SummaryWriter()`
-    instance for saving experiments to a specific `log_dir`.
-
-    All experiments on certain day live in the same folder.
-
-    `log_dir` is combination of
-    `<start_dir>/<timestamp>/<experiment_name>/<model_name>/<extra>`
-    where timestamp is the current date in `YYYY-MM-DD` format.
-
-    Args:
-        experiment_name (str): Name of experiment.
-        model_name (str): Name of model.
-        start_dir (str): The first directory where all the
-            experiments will be saved. Defaults to `runs`.
-        extra (str, optional):
-            Anything extra to add to the directory.
-            Defaults to None.
-
-    Returns:
-        torch.utils.tensorboard.writer.SummaryWriter():
-            Instance of a writer saving to `log_dir`.
-
-    Example:
-
-        >>> # Create a writer to
-        >>> # "runs/2022-06-05/data_10_percent/effnetb2/5_epochs/":
-        >>> writer = create_writer(
-        ...    start_dir="runs",
-        ...    experiment_name="data_10_percent",
-        ...    model_name="effnetb2",
-        ...    extra="5_epochs"
-        ... )
-        >>> print(writer)
-        <torch.utils.tensorboard.writer.SummaryWriter at 0x7c107effea10>
-    """
-    timestamp = datetime.now().strftime("%Y-%m-%d")
-
-    log_dir = os.path.join(start_dir, timestamp, experiment_name, model_name)
-    if extra:
-        log_dir = os.path.join(log_dir, extra)
-
-    logger.info(f"Created SummaryWriter, saving to {log_dir}\n")
-    return SummaryWriter(log_dir=log_dir)
+# def create_writer(
+#     experiment_name: str,
+#     model_name: str,
+#     start_dir: str = "runs",
+#     extra: Optional[str] = None,
+# ) -> torch.utils.tensorboard.writer.SummaryWriter:
+#     """
+#     Creates a `torch.utils.tensorboard.writer.SummaryWriter()`
+#     instance for saving experiments to a specific `log_dir`.
+#
+#     All experiments on certain day live in the same folder.
+#
+#     `log_dir` is combination of
+#     `<start_dir>/<timestamp>/<experiment_name>/<model_name>/<extra>`
+#     where timestamp is the current date in `YYYY-MM-DD` format.
+#
+#     Args:
+#         experiment_name (str): Name of experiment.
+#         model_name (str): Name of model.
+#         start_dir (str): The first directory where all the
+#             experiments will be saved. Defaults to `runs`.
+#         extra (str, optional):
+#             Anything extra to add to the directory.
+#             Defaults to None.
+#
+#     Returns:
+#         torch.utils.tensorboard.writer.SummaryWriter():
+#             Instance of a writer saving to `log_dir`.
+#
+#     Example:
+#
+#         >>> # Create a writer to
+#         >>> # "runs/2022-06-05/data_10_percent/effnetb2/5_epochs/":
+#         >>> writer = create_writer(
+#         ...    start_dir="runs",
+#         ...    experiment_name="data_10_percent",
+#         ...    model_name="effnetb2",
+#         ...    extra="5_epochs"
+#         ... )
+#         >>> print(writer)
+#         <torch.utils.tensorboard.writer.SummaryWriter at 0x7c107effea10>
+#     """
+#     timestamp = datetime.now().strftime("%Y-%m-%d")
+#
+#     log_dir = os.path.join(start_dir, timestamp, experiment_name, model_name)
+#     if extra:
+#         log_dir = os.path.join(log_dir, extra)
+#
+#     logger.info(f"Created SummaryWriter, saving to {log_dir}\n")
+#     return SummaryWriter(log_dir=log_dir)
 
 
 def load_yaml_file(filepath: str) -> Any:

@@ -1,23 +1,27 @@
 import os
 from typing import Any, Dict
 
+import mlflow
+import torchinfo
+import torchmetrics
 from torch import nn
 
 from image_multiclass_classification import logger
 from image_multiclass_classification.data_setup import create_dataloaders
 from image_multiclass_classification.engine.trainer import TrainingExperiment
 from image_multiclass_classification.factories.client import Client
-from image_multiclass_classification.utils.aux import Timer, create_writer
+from image_multiclass_classification.utils.aux import Timer
 
 
 class ExperimentManager:
-    """A class to manage and run experiments with PyTorch models
-    on custom data.
+    """Manages and runs training experiments for multi-class image
+    classification with PyTorch.
 
-    This class provides methods to run multiple experiments specified
-    in a configuration file.Each experiment consists of parameters such
+    Provides methods for running multiple experiments that are specified
+    in a configuration file. Each experiment consists of parameters such
     as the experiment name, directories for tracking and saving models,
-    data paths for training and testing, and hyperparameters for training.
+    data paths for training and testing datasets, and hyperparameters for
+    training.
 
     Args:
         config (Dict[str, Any]):
@@ -138,7 +142,6 @@ class ExperimentManager:
             ...             'optimizer_name': 'adam',
             ...             'learning_rate': 0.001,
             ...             'weight_decay': 0.3,
-            ...             'betas': (0.9, 0.999)
             ...         },
             ...         'early_stopping': {
             ...             'patience': 3,
@@ -166,15 +169,13 @@ class ExperimentManager:
             num_classes=len(class_names),
         )
         loss_fn = nn.CrossEntropyLoss()
+        accuracy_fn = torchmetrics.Accuracy(
+            task="multiclass", num_classes=len(class_names)
+        )
         optimizer = self.client.optimizers_client(
             optimizer_name=experiment["hyperparameters"]["optimizer"]["optimizer_name"],
             model_params=model.parameters(),
             learning_rate=experiment["hyperparameters"]["optimizer"]["learning_rate"],
-        )
-        writer = create_writer(
-            start_dir=self.config["tracking_dir"],
-            experiment_name=experiment["name"],
-            model_name=experiment["hyperparameters"]["model"]["model_name"],
         )
 
         model_name = (
@@ -187,6 +188,7 @@ class ExperimentManager:
             model=model,
             optimizer=optimizer,
             loss_fn=loss_fn,
+            accuracy_fn=accuracy_fn,
             train_dataloader=train_dataloader,
             test_dataloader=test_dataloader,
             epochs=experiment["hyperparameters"]["general"]["num_epochs"],
@@ -194,10 +196,34 @@ class ExperimentManager:
             delta=experiment["hyperparameters"]["early_stopping"]["delta"],
             checkpoint_path=checkpoint_path,
             resume=self.resume_from_checkpoint,
-            writer=writer,
         )
 
-        # Train the model
-        with Timer() as t:
-            training_experiment.train()
-        logger.info(f"Training took {t.elapsed} seconds.")
+        with mlflow.start_run():
+            training_parameters = {
+                "epochs": experiment["hyperparameters"]["general"]["num_epochs"],
+                "batch_size": experiment["hyperparameters"]["general"]["batch_size"],
+                "learning_rate": experiment["hyperparameters"]["optimizer"][
+                    "learning_rate"
+                ],
+                "patience": experiment["hyperparameters"]["early_stopping"]["patience"],
+                "delta": experiment["hyperparameters"]["early_stopping"]["delta"],
+                "weight_decay": experiment["hyperparameters"]["optimizer"][
+                    "weight_decay"
+                ],
+                "optimizer": optimizer.__class__.__name__,
+                "loss_function": loss_fn.__class__.__name__,
+                "metric_function": accuracy_fn.__class__.__name__,
+            }
+
+            # Log training params
+            mlflow.log_params(params=training_parameters)
+
+            # Log model summary
+            with open(file="./model_summary.txt", mode="w") as f:
+                f.write(str(torchinfo.summary(model)))
+            mlflow.log_artifact(local_path="./model_summary.txt")
+
+            # Train the model
+            with Timer() as t:
+                training_experiment.train()
+            logger.info(f"Training took {t.elapsed} seconds.")
